@@ -30,15 +30,6 @@ async def fetch_regions():
 
 
 def plot_flights_trend(flight_counts: List[int], labels: List[str] = None) -> BytesIO:
-
-    """
-    Создаёт график динамики количества полётов.
-
-    :param flight_counts: Список чисел — количество полётов (например, [120, 150, 90])
-    :param labels: Список меток для оси X (например, ['2022', '2023', '2024']). 
-                   Если не задан — генерируются как 1, 2, 3...
-    :return: BytesIO — изображение в формате PNG, готовое к отправке в Telegram
-    """
     if not flight_counts:
         raise ValueError("Список flight_counts не должен быть пустым")
 
@@ -56,10 +47,9 @@ def plot_flights_trend(flight_counts: List[int], labels: List[str] = None) -> By
     plt.grid(True, linestyle='--', alpha=0.6)
     plt.tight_layout()
 
-    # Сохраняем в буфер
     buf = BytesIO()
     plt.savefig(buf, format='png', dpi=150, bbox_inches='tight')
-    plt.close()  # освобождаем память
+    plt.close() 
     buf.seek(0)
     return buf
 
@@ -77,6 +67,8 @@ def find_top_regions():
             d[year.get('year')] = year.get('flight_count')
             top_regions.append(d)
     TOP [:] = top_regions
+    print('получен топ регионов')
+    print(TOP)
 
 
 def get_statistics_of_regions():
@@ -87,6 +79,8 @@ def get_statistics_of_regions():
         region_id = region.get('id')
         statistic = api_client.get_statistic_of_region(region_id)
         STATISTICS.append(statistic)
+    
+    print('get stats')
     find_top_regions()
 
 
@@ -99,7 +93,7 @@ def get_top_10_by_total() -> dict:
     sorted_regions = sorted(valid_regions, key=lambda x: x['total'], reverse=True)
 
     top_10 = {r['id']: r['total'] for r in sorted_regions[:10]}
-
+    print('get top 10')
     return top_10
 
 
