@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no"/>
+  <title>Анализ полётов — Красноярский край</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    body {
+      background: #f5f7fa;
+      padding: 16px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .header {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .filter {
+      flex: 1;
+      background: #fff;
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 14px;
+      position: relative;
+    }
+
+    .filter select {
+      width: 100%;
+      padding: 8px 12px;
+      border: 1px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      cursor: pointer;
+    }
+
+    .filter::after {
+      content: "▼";
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      pointer-events: none;
+      color: #888;
+    }
+
+    .alert {
+      background: #fff;
+      padding: 16px;
+      border-radius: 12px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .alert h3 {
+      font-size: 16px;
+      margin-bottom: 4px;
+      color: #2c3e50;
+    }
+
+    .alert p {
+      font-size: 14px;
+      color: #7f8c8d;
+    }
+
+    .section {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title .arrow {
+      font-size: 18px;
+      color: #7f8c8d;
+    }
+
+    .region-cards {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 4px 0;
+      scrollbar-width: none;
+    }
+
+    .region-card {
+      min-width: 100px;
+      background: #ecf0f1;
+      border-radius: 12px;
+      padding: 12px;
+      text-align: center;
+    }
+
+    .region-card .rank {
+      font-size: 24px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+
+    .region-card .name {
+      font-size: 12px;
+      color: #7f8c8d;
+      margin-bottom: 4px;
+    }
+
+    .region-card .flights {
+      font-size: 14px;
+      color: #2c3e50;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .stat-card {
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+    }
+
+    .stat-card .value {
+      font-size: 28px;
+      font-weight: bold;
+      color: #2c3e50;
+      margin-bottom: 4px;
+    }
+
+    .stat-card .label {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+
+    .stat-card.highlight {
+      background: #2c3e50;
+      color: white;
+    }
+
+    .stat-card.highlight .value,
+    .stat-card.highlight .label {
+      color: white;
+    }
+
+    .chart-container {
+      height: 150px;
+      background: #f9f9f9;
+      border-radius: 12px;
+      padding: 12px;
+      position: relative;
+    }
+
+    .chart {
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(to bottom, #e3f2fd 0%, #ffffff 100%);
+      position: relative;
+    }
+
+    .chart-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      stroke: #2196f3;
+      fill: none;
+      stroke-width: 2;
+    }
+
+    .chart-points {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .chart-point {
+      width: 6px;
+      height: 6px;
+      background: #2196f3;
+      border-radius: 50%;
+      position: absolute;
+    }
+
+    .chart-legend {
+      display: flex;
+      justify-content: flex-end;
+      font-size: 10px;
+      color: #7f8c8d;
+      margin-top: 8px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-left: 12px;
+    }
+
+    .legend-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      margin-right: 4px;
+    }
+
+    .legend-dot.avg { background: #673ab7; }
+    .legend-dot.min { background: #4caf50; }
+    .legend-dot.max { background: #f44336; }
+
+    .flight-details {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .flight-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .flight-row:last-child {
+      border-bottom: none;
+    }
+
+    .flight-icon {
+      font-size: 16px;
+      margin-right: 8px;
+      color: #2c3e50;
+    }
+
+    .flight-label {
+      font-size: 12px;
+      color: #7f8c8d;
+    }
+
+    .flight-value {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .more-button {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      color: #7f8c8d;
+      font-size: 14px;
+      margin: 8px 0;
+      cursor: pointer;
+    }
+
+    .export-button {
+      width: 100%;
+      background: #2c3e50;
+      color: white;
+      border: none;
+      border-radius: 24px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 16px;
+    }
+
+    .export-button:hover {
+      background: #1a252f;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Фильтры (статичные, без функционала) -->
+  <div class="header">
+    <div class="filter">
+      <div>Регион</div>
+      <select id="region" disabled>
+        <option>Красноярский край</option>
+      </select>
+    </div>
+    <div class="filter">
+      <div>Период</div>
+      <select id="period" disabled>
+        <option>Январь–Июль 2025</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Уведомление -->
+  <div class="alert">
+    <h3>Красноярский край вошёл в топ-3 по росту активности</h3>
+    <p>Средняя длительность полетов выросла на 18%</p>
+  </div>
+
+  <!-- Рейтинг регионов -->
+  <div class="section">
+    <div class="section-title">
+      Рейтинг регионов
+      <span class="arrow">→</span>
+    </div>
+    <div class="region-cards">
+      <div class="region-card">
+        <div class="rank">1</div>
+        <div class="name">Москва</div>
+        <div class="flights">3 200 полетов</div>
+      </div>
+      <div class="region-card">
+        <div class="rank">2</div>
+        <div class="name">Санкт-Петербург</div>
+        <div class="flights">2 800 полетов</div>
+      </div>
+      <div class="region-card">
+        <div class="rank">3</div>
+        <div class="name">Красноярский край</div>
+        <div class="flights">2 137 полетов</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Динамика полетов -->
+  <div class="section">
+    <div class="section-title">Динамика полетов (2025)</div>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="value">2 137</div>
+        <div class="label">Всего полетов</div>
+      </div>
+      <div class="stat-card">
+        <div class="value">1 ч 57 мин</div>
+        <div class="label">Среднее время</div>
+      </div>
+      <div class="stat-card">
+        <div class="value">+8,2%</div>
+        <div class="label">Рост к 2024</div>
+      </div>
+      <div class="stat-card highlight">
+        <div class="value">10</div>
+        <div class="label">Среднесуточно</div>
+      </div>
+    </div>
+    <div class="chart-container">
+      <div class="chart">
+        <svg width="100%" height="100%">
+          <!-- Данные за Январь–Июль 2025 -->
+          <polyline class="chart-line" points="
+            0,95
+            16.6,92
+            33.3,85
+            50,78
+            66.6,65
+            83.3,50
+            100,48
+          "></polyline>
+          <circle class="chart-point" cx="0" cy="95" r="3" />
+          <circle class="chart-point" cx="16.6%" cy="92" r="3" />
+          <circle class="chart-point" cx="33.3%" cy="85" r="3" />
+          <circle class="chart-point" cx="50%" cy="78" r="3" />
+          <circle class="chart-point" cx="66.6%" cy="65" r="3" />
+          <circle class="chart-point" cx="83.3%" cy="50" r="3" />
+          <circle class="chart-point" cx="100%" cy="48" r="3" />
+        </svg>
+      </div>
+      <div class="chart-legend">
+        <div class="legend-item"><div class="legend-dot avg"></div> Среднее</div>
+        <div class="legend-item"><div class="legend-dot min"></div> Мин.</div>
+        <div class="legend-item"><div class="legend-dot max"></div> Макс.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Детали последнего полета -->
+  <div class="flight-details">
+    <div class="flight-row">
+      <div class="flight-icon">✈️</div>
+      <div class="flight-label">Вылет</div>
+      <div class="flight-value">07:00</div>
+    </div>
+    <div class="flight-row">
+      <div class="flight-icon">⏱️</div>
+      <div class="flight-label">11 часов в полете</div>
+      <div class="flight-value"></div>
+    </div>
+    <div class="flight-row">
+      <div class="flight-icon">🛬</div>
+      <div class="flight-label">Прилет</div>
+      <div class="flight-value">18:00</div>
+    </div>
+    <div class="more-button">Больше ▼</div>
+  </div>
+
+  <!-- Экспорт -->
+  <button class="export-button">Экспортировать данные</button>
+
+  <script>
+    // Просто заглушка для кнопок (можно убрать)
+    document.querySelector('.more-button').addEventListener('click', () => {
+      alert('Подробная информация недоступна в демо-режиме');
+    });
+    document.querySelector('.export-button').addEventListener('click', () => {
+      alert('Экспорт недоступен в демо-режиме');
+    });
+  </script>
+
+</body>
+</html>
