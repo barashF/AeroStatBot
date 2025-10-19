@@ -4,7 +4,7 @@ from aiogram.fsm.storage.memory import MemoryStorage
 import asyncio
 
 from .handlers import start
-from utils import fetch_regions, get_statistics_of_regions
+from utils import fetch_regions
 from configuration.config import TOKEN
 
 
@@ -18,5 +18,4 @@ async def main():
 
     _init_routers(dp)
     await fetch_regions()
-    get_statistics_of_regions()
     await dp.start_polling(bot)
