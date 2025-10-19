@@ -452,6 +452,33 @@ async def export_region_json(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
+@router.callback_query(F.data.startswith("export_rf"))
+async def export_region_json(callback_query: CallbackQuery):
+    region_id = 24
+    client = APIClient()
+    
+    try:
+        stat_data = client.get_json_statistic(region_id)  
+    except Exception as e:
+        await callback_query.answer(f"Ошибка загрузки данных: {e}", show_alert=True)
+        return
+
+    json_bytes = json.dumps(stat_data, ensure_ascii=False, indent=2).encode("utf-8")
+
+    
+    file = BufferedInputFile(
+        file=json_bytes,
+        filename=f"flight_statistics_rf.json"
+    )
+
+    
+
+    await callback_query.message.answer_document(
+        document=file,
+        caption=f"📊 Экспорт данных по РФ"
+    )
+    await callback_query.answer()
+
 @router.callback_query(F.data.startswith('trends_'))
 async def send_trend_chart(callback_query: CallbackQuery):
     loading_msg: Message = await callback_query.message.answer("📊 Собираю статистику...\nЭто может занять несколько секунд.")
@@ -465,7 +492,7 @@ async def send_trend_chart(callback_query: CallbackQuery):
     await loading_msg.delete()
 
 
-@router.callback_query(F.data.startswith('export_'))
+@router.callback_query(F.data.startswith('export_trends_'))
 async def send_trend_chart_report(callback_query: CallbackQuery):
     loading_msg: Message = await callback_query.message.answer("📊 Собираю статистику...\nЭто может занять несколько секунд.")
     region_id, type_report = callback_query.data.replace('export_trends_', '').split('_')

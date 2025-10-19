@@ -11,7 +11,7 @@ def get_main_kb():
                     InlineKeyboardButton(text="📈 Динамика 2025", callback_data="trends_24_all")
                 ],
                 [
-                    InlineKeyboardButton(text="📄 Отчёт по РФ", callback_data="report_rf"),
+                    InlineKeyboardButton(text="📄 Отчёт по РФ", callback_data="export_rf"),
                     InlineKeyboardButton(text="⚙️ Таблица регионов", callback_data="table_regions")
                 ],
             ]
